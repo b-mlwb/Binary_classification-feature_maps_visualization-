@@ -6,6 +6,10 @@ from keras import layers
 from keras import optimizers
 import matplotlib.pyplot as plt
 
+train_dir = cats_and_dogs/train_set #include training samples directory make it 2000 samples
+test_dir = cats_and_dogs/test_set #include testing samples directory make it 1000 samples
+validation_dir = cats_and_dogs/validation_set #include validation samples directory make it 1000 samples
+
 train_model = VGG16(weights= 'imagenet', include_top = False)
 
 data_gen = ImageDataGenerator(rescale = 1./255)
@@ -47,8 +51,8 @@ history = train_classfier.fit(training_features , training_labels , epochs = 45 
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 
-acc = history.history['acc']
-val_acc = history.history['val_acc']
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
 
 epochs = range(1 , len(acc) + 1)
 
@@ -73,7 +77,7 @@ class_model = load_model('cats_and_dogs_scratch.h5')
 from keras.preprocessing import image
 import numpy as np
 
-images = image.load_img('drive/MyDrive/cats_and_dogs/test_set/cats/1504.jpg', target_size=(150,150))
+images = image.load_img('cats_and_dogs/test_set/cats/1504.jpg', target_size=(150,150))
 img = image.img_to_array(images)
 img = np.expand_dims(img , axis=0)
 img /= 255.
