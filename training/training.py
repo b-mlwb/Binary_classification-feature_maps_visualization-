@@ -63,3 +63,61 @@ plt.plot(epochs , acc, 'ro' , label='training_accuracy')
 plt.plot(epochs , val_acc, 'b' , label= 'validation_accuracy')
 plt.title('Training and validation accuracy')
 plt.legend()
+
+
+train_classfier.save('cats_and_dogs_scratch.h5')
+
+from keras.saving import load_model
+class_model = load_model('cats_and_dogs_scratch.h5')
+
+from keras.preprocessing import image
+import numpy as np
+
+images = image.load_img('drive/MyDrive/cats_and_dogs/test_set/cats/1504.jpg', target_size=(150,150))
+img = image.img_to_array(images)
+img = np.expand_dims(img , axis=0)
+img /= 255.
+
+print(img.shape)
+
+
+from keras.models import Model
+import matplotlib.pyplot as plt
+
+layers_outputs = [layer.output for layer in class_model.layers[:8]]
+
+activation_model = Model( inputs=class_model.input , outputs=layers_outputs )
+
+activations = activation_model.predict(img)
+
+first_layer = activations[0]
+
+layer_names = []
+for layer in class_model.layers[:8]:
+  layer_names.append(layer.name)
+
+images_per_row = 16
+
+for layer_name , layer_activation in zip(layer_names , activations):
+
+  filters = layer_activation.shape[-1]
+  size = layer_activation.shape[1]
+
+  no_rows = filters // images_per_row
+  display = np.zeros((size * no_rows , size * images_per_row))
+
+  for row in range(no_rows):
+    for col in range(images_per_row):
+      channel_image = layer_activation[0,:,:, row * images_per_row + col]
+      channel_image -= channel_image.mean()
+      channel_image /= channel_image.std()
+      channel_image *= 64
+      channel_image += 128
+      channel_image = np.clip(channel_image , 0, 255).astype('uint8')
+      display[row *size : (row + 1) * size , col * size : (col + 1) * size] = channel_image
+
+  scale = 1./ size
+  plt.figure(figsize = (scale * display.shape[1] , scale * display.shape[0]))
+  plt.title(layer_name)
+  plt.grid(False)
+  plt.imshow(display , aspect='auto', cmap = 'viridis')
